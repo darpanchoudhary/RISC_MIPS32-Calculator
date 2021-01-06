@@ -1,4 +1,4 @@
-// Code your design here
+
 module pipe_MIPS32 (clk1, clk2);
   
   input clk1, clk2 ;   // 2 phase clock because we are using pipeline
