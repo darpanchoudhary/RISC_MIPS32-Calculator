@@ -45,7 +45,7 @@ module pipe_MIPS32 (clk1, clk2);
         end  
   
   always @ (posedge clk2)                                                                          //ID Stage
-    if(HALTED == 0)                                                                                //To make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
+    if(HALTED == 0);                                                                                //To make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
     begin 
       if (IF_ID_IR[25:21] == 5'b00000) ID_EX_A <= 0; 
       else ID_EX_A <= #2 Reg[IF_ID_IR[25:21]]; 
@@ -70,7 +70,7 @@ module pipe_MIPS32 (clk1, clk2);
     end  
         
   always @ (posedge clk1)                                                                          //EX stage
-    if(HALTED == 0 )                                                                               //Tomake sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
+    if(HALTED == 0 );                                                                               //Tomake sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
       begin EX_MEM_type <= #2 ID_EX_type;                                                          //Forwarding the type to next stage
             EX_MEM_IR   <= #2 ID_EX_IR;                                                            //Forwarding the Instruction register to next stage as well
             TAKEN_BRANCH <= #2 0;
@@ -113,30 +113,28 @@ module pipe_MIPS32 (clk1, clk2);
   
             
   always @(posedge clk2)                                                                           //MEM stage //Alternate stages triggered by alternate clk signals to avoid race conditions
-    if(HALTED == 0) ////because you want to make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
+    if(HALTED == 0);                                                                                //To make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
       begin 
-        MEM_WB_type <= #2 EX_MEM_type; // type is forward to next stage
-        MEM_WB_IR <= #2 EX_MEM_IR;  //instruction register is also forwarded to next stage
+        MEM_WB_type <= #2 EX_MEM_type;                                                             //Type is forwarded to next stage
+        MEM_WB_IR <= #2 EX_MEM_IR;                                                                 //Instruction register is also forwarded to next stage
         
         case(EX_MEM_type)
           RR_ALU, RM_ALU:
-            MEM_WB_ALUOut <= #2 EX_MEM_ALUOut; //you just forward  ALUOut,EX_MEM_ALUOut has the address and to access data you do mem[EX_MEM_ALUOut]
-          
-          LOAD: MEM_WB_LMD <= #2 Mem[EX_MEM_ALUOut]; // you store the content of ALUOut in memory 
-          
-          STORE: if (TAKEN_BRANCH == 0 ) //if its 1 then no need to do write therefore we check this first,only if its 0 you do write
-            Mem[EX_MEM_ALUOut] <= #2 EX_MEM_B; //store in the memory
+          MEM_WB_ALUOut <= #2 EX_MEM_ALUOut;                                                       //Forward ALUOut,EX_MEM_ALUOut has the address and to access data you do mem[EX_MEM_ALUOut]
+          LOAD: MEM_WB_LMD <= #2 Mem[EX_MEM_ALUOut];                                               //Store the content of ALUOut in memory 
+          STORE: if (TAKEN_BRANCH == 0 )                                                           //If == 1 then no need to do write therefore we check this first,only if its 0 you do write
+            Mem[EX_MEM_ALUOut] <= #2 EX_MEM_B;                                                     //Store in the memory
         endcase
       end
             
   always @ (posedge clk1) //WB Stage
     begin
-      if (TAKEN_BRANCH == 0 ) //NO NEED TO WRITE IF TAKEN BRANCH IS 1 ...
+      if (TAKEN_BRANCH == 0 );                                                                     //NO need to write if Taken Branch is 1
         case(MEM_WB_type)
-          RR_ALU: Reg[MEM_WB_IR[15:11]] <= #2 MEM_WB_ALUOut; //'rd'
-          RM_ALU: Reg[MEM_WB_IR[20:16]] <= #2 MEM_WB_ALUOut; //'rt'
-          LOAD  : Reg[MEM_WB_IR[20:16]] <= #2 MEM_WB_LMD; // 'rt'
-          HALT:   HALTED <= #2 1'b1;  //we set it 1 here because it is the last stage and hence if its 1 here then next instruction won't be executed
+          RR_ALU: Reg[MEM_WB_IR[15:11]] <= #2 MEM_WB_ALUOut;                                       //'rd' register
+          RM_ALU: Reg[MEM_WB_IR[20:16]] <= #2 MEM_WB_ALUOut;                                       //'rt' register
+          LOAD  : Reg[MEM_WB_IR[20:16]] <= #2 MEM_WB_LMD;                                          //'rt' register
+          HALT:   HALTED <= #2 1'b1;                                                               //Set 1 here because it is the last stage and hence if its 1 here then next instruction won't be executed
         endcase
     end
   
