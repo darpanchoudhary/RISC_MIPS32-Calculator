@@ -44,20 +44,18 @@ module pipe_MIPS32 (clk1, clk2);
           end
         end  
   
-  always @ (posedge clk2)//ID Stage
-    if(HALTED == 0) // because you want to make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
+  always @ (posedge clk2)                                                                          //ID Stage
+    if(HALTED == 0)                                                                                //To make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
     begin 
-      if (IF_ID_IR[25:21] == 5'b00000) ID_EX_A <= 0; //bit number 25 to 21 represents one of the source registers 'rs'if its 0 then we dont need to 
-                                                     //access register bank you can just equate it to 0 
-      else ID_EX_A <= #2 Reg[IF_ID_IR[25:21]]; // 'rs' here we are accessing the register bank as part of the else case
+      if (IF_ID_IR[25:21] == 5'b00000) ID_EX_A <= 0; 
+      else ID_EX_A <= #2 Reg[IF_ID_IR[25:21]]; 
       
-      if (IF_ID_IR[20:16] == 5'b00000) ID_EX_B <= 0; //same explanation as above,only difference being we are grabbing the second source register in
-                                                      //this case
-      else ID_EX_B <= #2 Reg[IF_ID_IR[20:16]]; //else case for second register..
+      if (IF_ID_IR[20:16] == 5'b00000) ID_EX_B <= 0; 
+      else ID_EX_B <= #2 Reg[IF_ID_IR[20:16]]; 
       
-      ID_EX_NPC <= #2 IF_ID_NPC; //Simply forwarding the NPC to next stage
-      ID_EX_IR <= #2 IF_ID_IR; //forwarding IR to next stage as well
-      ID_EX_Imm <= #2 {{16{IF_ID_IR[15]}},{IF_ID_IR[15:0]}}; //this is sign extension of immediate data
+      ID_EX_NPC <= #2 IF_ID_NPC;                                                                   //Simply forwarding the NPC to next stage
+      ID_EX_IR <= #2 IF_ID_IR;                                                                     //Forwarding IR to next stage as well
+      ID_EX_Imm <= #2 {{16{IF_ID_IR[15]}},{IF_ID_IR[15:0]}};                                       //Sign extension of immediate data
       
       case (IF_ID_IR[31:26])
         ADD,SUB,AND,OR,SLT,MUL : ID_EX_type <= #2 RR_ALU;
@@ -66,7 +64,7 @@ module pipe_MIPS32 (clk1, clk2);
         SW:						 ID_EX_type <= #2 STORE;
         BNEQZ,BEQZ:              ID_EX_type <= #2 BRANCH;
         HLT:                     ID_EX_type <= #2 HALT;
-        default:                 ID_EX_type <= #2 HALT; //for OPCODE thats not expected
+        default:                 ID_EX_type <= #2 HALT;                                            //For OPCODE thats not expected
         
       endcase
     end  
