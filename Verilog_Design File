@@ -1,42 +1,42 @@
 
 module pipe_MIPS32 (clk1, clk2);
   
-  input clk1, clk2 ;   // 2 phase clock because we are using pipeline
+  input clk1, clk2 ;                                                                               //2 phase clock because we are using pipeline
   
   reg[31:0] PC,IF_ID_IR,IF_ID_NPC;
   reg[31:0] ID_EX_IR, ID_EX_NPC, ID_EX_A, ID_EX_B, ID_EX_Imm;
-  reg[2:0] ID_EX_type, EX_MEM_type, MEM_WB_type; //parameter for these defined in lines 20 and 21
+  reg[2:0] ID_EX_type, EX_MEM_type, MEM_WB_type; 
   reg[31:0] EX_MEM_IR, EX_MEM_ALUOut, EX_MEM_B;
-  reg       EX_MEM_cond; // required for jump/branch instructions 
+  reg       EX_MEM_cond;                                                                           //Required for jump/branch instructions 
   reg[31:0] MEM_WB_IR, MEM_WB_ALUOut, MEM_WB_LMD;
   
-  reg[31:0] Reg [0:31]; //register bank(32 X 32)   ??
-  reg[31:0] Mem [0:1023];  //1024 X 32 memory
+  reg[31:0] Reg [0:31];                                                                            //Register bank(32 X 32)
+  reg[31:0] Mem [0:1023];                                                                          //1024 X 32 memory
   
   parameter ADD = 6'b000000, SUB = 6'b000001, AND = 6'b000010, OR = 6'b000011, SLT = 6'b000100,
             MUL = 6'b000101, HLT =6'b111111, LW = 6'b001000, SW = 6'b001001, ADDI = 6'b001010, 
             SUBI = 6'b001011, SLTI = 6'b001100, BNEQZ = 6'b001101, BEQZ = 6'b001110;
   
   parameter RR_ALU = 3'b000, RM_ALU = 3'b001, LOAD = 3'b010, STORE = 3'b011, BRANCH = 3'b100, 
-  HALT = 3'b101;  //for type of instruction used in reg[2:0]..line8 
+  HALT = 3'b101; 
   
-  reg HALTED; //Set after HLT instruction is completed in WB stage
+  reg HALTED;                                                                                      //Set after HLT instruction is completed in WB stage
   
-  reg TAKEN_BRANCH; // required to disable instructions after branch
+  reg TAKEN_BRANCH;                                                                                //Required to disable instructions after branch
 
-  always @ (posedge clk1)//IF Stage
-    if (HALTED == 0) // because you want to make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
+  always @ (posedge clk1)                                                                          //IF Stage
+    if (HALTED == 0);                                                                              //To make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
       begin
-        if (((EX_MEM_IR[31:26] == BEQZ) && (EX_MEM_cond == 1)) || //EX_MEM_cond = (A = = 0);
-          ((EX_MEM_IR[31:26] == BNEQZ) && (EX_MEM_cond == 0)))
+        if (((EX_MEM_IR[31:26] == BEQZ) && (EX_MEM_cond == 1)) ||                                   
+          ((EX_MEM_IR[31:26] == BNEQZ) && (EX_MEM_cond == 0)));                                    //EX_MEM_cond = (A = = 0);
           
           begin
-            IF_ID_IR <= #2 Mem[EX_MEM_ALUOut]; //where to branch is calculated in EX_MEM_ALUout and hence is assigned to IR
-            TAKEN_BRANCH <= #2 1'b1; // also you set the branch to 1
-            IF_ID_NPC <= #2 EX_MEM_ALUOut + 1;  //for next instruction
+            IF_ID_IR <= #2 Mem[EX_MEM_ALUOut];                                                     //"Where to" branch is calculated in EX_MEM_ALUout and hence is assigned to IR
+            TAKEN_BRANCH <= #2 1'b1;                                                               //Set the branch to 1
+            IF_ID_NPC <= #2 EX_MEM_ALUOut + 1;                                                     //For next instruction
             PC <= #2 EX_MEM_ALUOut + 1;
           end
-        else  //if branch is not taken
+        else                                                                                       //If branch is not taken
           begin
             IF_ID_IR <= Mem[PC];
             IF_ID_NPC <= PC + 1;
