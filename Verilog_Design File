@@ -69,16 +69,16 @@ module pipe_MIPS32 (clk1, clk2);
       endcase
     end  
         
-  always @ (posedge clk1) //EX stage
-    if(HALTED == 0 )  //because you want to make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
-      begin EX_MEM_type <= #2 ID_EX_type; //forwarding the type to next stage
-            EX_MEM_IR   <= #2 ID_EX_IR; // forwarding the Instruction register to next stage as well
+  always @ (posedge clk1)                                                                          //EX stage
+    if(HALTED == 0 )                                                                               //Tomake sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
+      begin EX_MEM_type <= #2 ID_EX_type;                                                          //Forwarding the type to next stage
+            EX_MEM_IR   <= #2 ID_EX_IR;                                                            //Forwarding the Instruction register to next stage as well
             TAKEN_BRANCH <= #2 0;
         
         case (ID_EX_type)
           RR_ALU: begin
-                    case (ID_EX_IR[31:26]) //'this is where the OPCODE is'
-                      ADD: EX_MEM_ALUOut <= #2 ID_EX_A + ID_EX_B;  //add ,sub etc for RR_ALU 
+                    case (ID_EX_IR[31:26])                                                         //Contains OPCODE
+                      ADD: EX_MEM_ALUOut <= #2 ID_EX_A + ID_EX_B;                                  //ADD ,SUB etc for RR_ALU 
                       SUB: EX_MEM_ALUOut <= #2 ID_EX_A - ID_EX_B;
                       AND: EX_MEM_ALUOut <= #2 ID_EX_A & ID_EX_B;
                       OR:  EX_MEM_ALUOut <= #2 ID_EX_A | ID_EX_B;
@@ -89,7 +89,7 @@ module pipe_MIPS32 (clk1, clk2);
                   end
           
           RM_ALU: begin
-                   case(ID_EX_IR[31:26]) //again referring to the OPCODE
+                   case(ID_EX_IR[31:26])                                                           //Again referring to the OPCODE
                      ADDI: EX_MEM_ALUOut <= #2 ID_EX_A + ID_EX_Imm;
                      SUBI: EX_MEM_ALUOut <= #2 ID_EX_A - ID_EX_Imm;
                      SLTI: EX_MEM_ALUOut <= #2 ID_EX_A < ID_EX_Imm;
@@ -99,21 +99,20 @@ module pipe_MIPS32 (clk1, clk2);
           
           LOAD,STORE:
             begin
-              EX_MEM_ALUOut <= #2 ID_EX_A + ID_EX_Imm; //you add IMM to A to get the addr of the memory which you'll store in ALUOut 
-              EX_MEM_B      <= #2 ID_EX_B;//B is forwarded because this will be required for store instruction
+              EX_MEM_ALUOut <= #2 ID_EX_A + ID_EX_Imm;                                             //Add IMM to A to get the addr of the memory which you'll store in ALUOut 
+              EX_MEM_B      <= #2 ID_EX_B;                                                         //B is forwarded as it will be required for store instruction
             end
           
           BRANCH:
             begin
-              EX_MEM_ALUOut <= #2 ID_EX_NPC + ID_EX_Imm;//used to calculate target address,if you have to take branch..
-              EX_MEM_cond   <= #2 (ID_EX_A == 0); //cond is also needed to be calculated along with branch..also these 2 values are used in IF stage I  
-                                                  //guess
+              EX_MEM_ALUOut <= #2 ID_EX_NPC + ID_EX_Imm;                                           //If you have to take branch then this statement used to calculate target address
+              EX_MEM_cond   <= #2 (ID_EX_A == 0);                                                  //Cond is also needed to be calculated along with branch,also these 2 values are used in IF stage 
             end
         endcase
       end
   
             
-  always @(posedge clk2) //MEM stage //alternate stages triggered by alternate clk signals to avoid race conditions
+  always @(posedge clk2)                                                                           //MEM stage //Alternate stages triggered by alternate clk signals to avoid race conditions
     if(HALTED == 0) ////because you want to make sure you dont do anything if HALTED is 1 and proceed only if HALTED is 0.
       begin 
         MEM_WB_type <= #2 EX_MEM_type; // type is forward to next stage
