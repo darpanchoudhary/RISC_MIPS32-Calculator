@@ -122,7 +122,7 @@ module pipe_MIPS32 (clk1, clk2);
           RR_ALU, RM_ALU:
           MEM_WB_ALUOut <= #2 EX_MEM_ALUOut;                                                       //Forward ALUOut,EX_MEM_ALUOut has the address and to access data you do mem[EX_MEM_ALUOut]
           LOAD: MEM_WB_LMD <= #2 Mem[EX_MEM_ALUOut];                                               //Store the content of ALUOut in memory 
-          STORE: if (TAKEN_BRANCH == 0 )                                                           //If == 1 then no need to do write therefore we check this first,only if its 0 you do write
+          STORE: if (TAKEN_BRANCH == 0 );                                                           //If == 1 then no need to do write therefore we check this first,only if its 0 you do write
             Mem[EX_MEM_ALUOut] <= #2 EX_MEM_B;                                                     //Store in the memory
         endcase
       end
